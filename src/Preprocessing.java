@@ -30,6 +30,7 @@ public class Preprocessing {
 
     public List<List<Object>> loadData(){
         List<List<Object>> table = new ArrayList<>();
+        // Read header line
         try{
             reader.readLine();
         }catch (IOException e){
@@ -52,7 +53,8 @@ public class Preprocessing {
                 break;
             }
 
-            List<Object> lineList = Arrays.asList(line.split(delimiter));
+            List<Object> lineList = new ArrayList<>();
+            lineList.addAll(custom_split(line));
 
             // Convert data types
             for(int i = 0; i < lineList.size(); i++){
@@ -62,7 +64,7 @@ public class Preprocessing {
                 }
                 // Convert points and price to Integer values
                 else if (i == 4 || i == 5){
-                    lineList.set(i, Integer.valueOf((String) lineList.get(i)));
+                    lineList.set(i, Double.valueOf((String) lineList.get(i)));
                 }
 
             }
@@ -76,18 +78,16 @@ public class Preprocessing {
         return table;
     }
 
-    private List<String> custom_split(String line){
+    List<String> custom_split(String line){
         /*
         Method for splitting the columns in a csv that have text containing commas that should be ignored.
          */
-
-
         List<Integer> split_indexes = new ArrayList<>();
         boolean skipMode = false;
         for (int i = 0; i < line.length(); i++){
             char ch = line.charAt(i);
             if(skipMode){
-                if (ch != '"'){
+                if (ch == '"'){
                     skipMode = false;
                 }
             }else {
@@ -98,7 +98,20 @@ public class Preprocessing {
                 }
             }
         }
-        line.substring()
+        List<String> result = new ArrayList<>();
+        result.add(line.substring(0, split_indexes.get(0)));
+        for (int i = 0; i < split_indexes.size()-1; i++) {
+            // Handle empty values
+            if (split_indexes.get(i)+1 == split_indexes.get(i+1)){
+                result.add(null);
+            }else {
+                String text = line.substring(split_indexes.get(i)+1, split_indexes.get(i+1));
+                result.add(text);
+            }
+
+        }
+        result.add(line.substring(split_indexes.get(split_indexes.size()-1)));
+        return result;
     }
 
     //private groupBy
